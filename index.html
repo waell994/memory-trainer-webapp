@@ -3,166 +3,203 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Тренажер памяти</title>
+  <title>Memory Trainer</title>
   <style>
+    :root {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --text: #f0f0f0;
+      --accent: #4fc3f7;
+      --error: #ff5252;
+      --border-radius: 16px;
+    }
+    * {
+      box-sizing: border-box;
+    }
     body {
-      background: #f0f4f8;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
       padding: 20px;
-      box-sizing: border-box;
     }
     .container {
-      background: #fff;
-      padding: 30px 40px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      text-align: center;
+      background: var(--card);
+      border-radius: var(--border-radius);
+      padding: 30px;
       max-width: 400px;
       width: 100%;
-      min-height: 250px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    h1 {
-      font-size: 24px;
-      color: #333;
-      margin-bottom: 10px;
-    }
-    .numbers {
-      font-size: 32px;
-      font-weight: 700;
-      margin: 20px 0;
-      letter-spacing: 12px;
-      color: #007bff;
-      animation: fadeIn 0.5s ease-in-out;
-      min-height: 45px;
-    }
-    input {
-      padding: 10px;
-      font-size: 18px;
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      margin-bottom: 20px;
-      box-sizing: border-box;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      text-align: center;
     }
     button {
-      background: #007bff;
-      color: white;
+      padding: 12px 20px;
+      margin: 10px 5px;
       border: none;
-      padding: 12px 25px;
+      border-radius: 12px;
+      background: var(--accent);
+      color: #000;
+      font-weight: bold;
       font-size: 16px;
-      border-radius: 10px;
       cursor: pointer;
       transition: background 0.3s ease;
     }
     button:hover {
-      background: #0056b3;
+      background: #81d4fa;
     }
-    .hidden {
-      display: none;
-    }
-    .result {
-      font-size: 18px;
+    .hidden { display: none; }
+    .numbers, .result, .card-grid {
       margin-top: 20px;
-      color: #444;
-      line-height: 1.4;
-      min-height: 60px;
     }
-    .warning {
-      color: #cc0000;
-      font-weight: 600;
-      font-size: 18px;
+    input {
+      padding: 10px;
+      width: 100%;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      margin-top: 10px;
     }
-    @keyframes fadeIn {
-      from {opacity: 0;}
-      to {opacity: 1;}
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .card {
+      background: #333;
+      height: 60px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      cursor: pointer;
+      color: transparent;
+      transition: background 0.3s;
+    }
+    .card.flipped {
+      background: var(--accent);
+      color: #000;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="container" id="app">
-    <h1>🧠 Тренажер памяти</h1>
-    <div class="numbers" id="numbers">Загрузка...</div>
+<div class="container" id="start-screen">
+  <h2>🧠 Memory Trainer</h2>
+  <p>Выбери игру:</p>
+  <button onclick="startNumbersGame()">🔢 Запомни цифры</button>
+  <button onclick="startCardsGame()">🃏 Найди пары</button>
+</div>
 
-    <div id="inputSection" class="hidden">
-      <input id="userInput" type="text" placeholder="Введите числа через пробел" autocomplete="off" />
-      <button id="checkBtn">Проверить</button>
-    </div>
-
-    <div class="result" id="result"></div>
+<div class="container hidden" id="numbers-game">
+  <h3>Запомни числа</h3>
+  <div class="numbers" id="numbers-display">...</div>
+  <div id="numbers-input" class="hidden">
+    <input id="user-numbers" placeholder="Введите числа через пробел" />
+    <button onclick="checkNumbers()">Проверить</button>
   </div>
+  <div class="result" id="numbers-result"></div>
+</div>
 
-  <script>
-    const app = document.getElementById('app');
-    const numbersDiv = document.getElementById('numbers');
-    const inputSection = document.getElementById('inputSection');
-    const resultDiv = document.getElementById('result');
-    const checkBtn = document.getElementById('checkBtn');
-    const userInput = document.getElementById('userInput');
+<div class="container hidden" id="cards-game">
+  <h3>Найди пары</h3>
+  <div class="card-grid" id="card-grid"></div>
+  <div class="result" id="cards-result"></div>
+</div>
 
-    // Генерация чисел
-    const numbers = Array.from({ length: 4 }, () => Math.floor(Math.random() * 10));
-    numbersDiv.textContent = numbers.join(' ');
+<script>
+  const startScreen = document.getElementById('start-screen');
+  const numbersGame = document.getElementById('numbers-game');
+  const cardsGame = document.getElementById('cards-game');
 
+  function showSection(section) {
+    startScreen.classList.add('hidden');
+    numbersGame.classList.add('hidden');
+    cardsGame.classList.add('hidden');
+    section.classList.remove('hidden');
+  }
+
+  // --- ЦИФРЫ ---
+  let correctNumbers = [];
+  function startNumbersGame() {
+    showSection(numbersGame);
+    const display = document.getElementById('numbers-display');
+    const inputBlock = document.getElementById('numbers-input');
+    const result = document.getElementById('numbers-result');
+    result.innerHTML = '';
+    correctNumbers = Array.from({length: 5}, () => Math.floor(Math.random()*10));
+    display.textContent = correctNumbers.join(' ');
     setTimeout(() => {
-      numbersDiv.textContent = '⏳ Время вышло!';
-      inputSection.classList.remove('hidden');
-      userInput.focus();
-    }, 5000);
+      display.textContent = '⏳ Время вышло!';
+      inputBlock.classList.remove('hidden');
+    }, 4000);
+  }
 
-    function checkAnswer() {
-      const input = userInput.value.trim();
-      if (!input) {
-        alert('Пожалуйста, введите числа');
-        return;
-      }
+  function checkNumbers() {
+    const input = document.getElementById('user-numbers').value.trim().split(/\s+/).map(Number);
+    const result = document.getElementById('numbers-result');
+    let score = 0;
+    input.forEach((num, i) => { if (num === correctNumbers[i]) score++; });
+    result.innerHTML = `✔️ Правильно: <b>${correctNumbers.join(' ')}</b><br>👤 Ваш ответ: <b>${input.join(' ')}</b><br>🎯 Совпадений: <b>${score}</b>`;
+  }
 
-      const userNumbers = input.split(/\s+/).map(Number);
-      if (userNumbers.length !== numbers.length || userNumbers.some(isNaN)) {
-        alert(`Введите ровно ${numbers.length} чисел через пробел`);
-        return;
-      }
-
-      let score = 0;
-      userNumbers.forEach((num, i) => {
-        if (num === numbers[i]) score++;
-      });
-
-      resultDiv.innerHTML = `
-        ✔️ Правильный ответ: <b>${numbers.join(' ')}</b><br/>
-        👤 Ваш ответ: <b>${userNumbers.join(' ')}</b><br/>
-        🎯 Совпадений: <b>${score} из ${numbers.length}</b>
-      `;
-
-      // Отправляем данные в Telegram, если возможно
-      if (window.Telegram && Telegram.WebApp) {
-        Telegram.WebApp.sendData(JSON.stringify({
-          correct: numbers.join(' '),
-          user: userNumbers.join(' '),
-          score: score
-        }));
-        Telegram.WebApp.close();
-      }
-    }
-
-    checkBtn.onclick = checkAnswer;
-    userInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') checkAnswer();
+  // --- КАРТОЧКИ ---
+  let cards = [], flipped = [], matched = [];
+  function startCardsGame() {
+    showSection(cardsGame);
+    const grid = document.getElementById('card-grid');
+    const result = document.getElementById('cards-result');
+    result.textContent = '';
+    const base = ['🍎','🍌','🍇','🍓','🍍','🥝','🍉','🥑'];
+    cards = shuffle([...base, ...base]);
+    grid.innerHTML = '';
+    matched = []; flipped = [];
+    cards.forEach((emoji, idx) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.index = idx;
+      card.onclick = () => flipCard(card, emoji);
+      grid.appendChild(card);
     });
+  }
 
-    // Раскрываем WebApp, если Telegram API доступен
-    if (window.Telegram && Telegram.WebApp) {
-      Telegram.WebApp.expand();
-    } else {
-      console.warn('Открыто вне Telegram. Некоторые функции могут быть недоступны.');
+  function flipCard(card, emoji) {
+    const idx = parseInt(card.dataset.index);
+    if (flipped.includes(idx) || matched.includes(idx) || flipped.length === 2) return;
+    card.classList.add('flipped');
+    card.textContent = emoji;
+    flipped.push(idx);
+
+    if (flipped.length === 2) {
+      const [i1, i2] = flipped;
+      setTimeout(() => {
+        if (cards[i1] === cards[i2]) {
+          matched.push(i1, i2);
+          if (matched.length === cards.length) {
+            document.getElementById('cards-result').textContent = '🎉 Все пары найдены!';
+          }
+        } else {
+          document.querySelector(`.card[data-index='${i1}']`).classList.remove('flipped');
+          document.querySelector(`.card[data-index='${i1}']`).textContent = '';
+          document.querySelector(`.card[data-index='${i2}']`).classList.remove('flipped');
+          document.querySelector(`.card[data-index='${i2}']`).textContent = '';
+        }
+        flipped = [];
+      }, 700);
     }
-  </script>
+  }
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+</script>
 </body>
 </html>
