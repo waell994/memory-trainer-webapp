@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Память тренажер</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    input {
+      font-size: 1.2rem;
+      padding: 8px;
+      margin-top: 10px;
+    }
+    button {
+      font-size: 1rem;
+      margin-top: 20px;
+      padding: 10px 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🧠 Запомни числа</h2>
+  <div id="numbers"></div>
+
+  <div id="input-section" style="display:none;">
+    <p>Введите числа, которые вы запомнили:</p>
+    <input id="userInput" type="text" placeholder="Например: 3 7 1" />
+    <br/>
+    <button onclick="sendAnswer()">Отправить</button>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const randomNumbers = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10));
+    const numberBlock = document.getElementById('numbers');
+    const inputSection = document.getElementById('input-section');
+
+    numberBlock.innerText = randomNumbers.join(' ');
+
+    setTimeout(() => {
+      numberBlock.innerText = 'Время вышло!';
+      inputSection.style.display = 'block';
+    }, 3000); // Показываем числа 3 секунды
+
+    function sendAnswer() {
+      const input = document.getElementById('userInput').value.trim();
+      tg.sendData(JSON.stringify({
+        correct: randomNumbers,
+        user: input
+      }));
+      tg.close(); // Закрыть Web App
+    }
+  </script>
+
+</body>
+</html>
