@@ -13,6 +13,8 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
     }
     .container {
       background: #fff;
@@ -21,7 +23,11 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.1);
       text-align: center;
       max-width: 400px;
-      width: 90%;
+      width: 100%;
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
     h1 {
       font-size: 24px;
@@ -35,6 +41,7 @@
       letter-spacing: 12px;
       color: #007bff;
       animation: fadeIn 0.5s ease-in-out;
+      min-height: 45px;
     }
     input {
       padding: 10px;
@@ -66,6 +73,12 @@
       margin-top: 20px;
       color: #444;
       line-height: 1.4;
+      min-height: 60px;
+    }
+    .warning {
+      color: #cc0000;
+      font-weight: 600;
+      font-size: 18px;
     }
     @keyframes fadeIn {
       from {opacity: 0;}
@@ -74,7 +87,7 @@
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="app">
     <h1>🧠 Тренажер памяти</h1>
     <div class="numbers" id="numbers">Загрузка...</div>
 
@@ -91,8 +104,8 @@
       const tg = window.Telegram && window.Telegram.WebApp;
 
       if (!tg) {
-        alert('Этот мини-приложение работает ТОЛЬКО внутри Telegram!');
-        document.body.innerHTML = '<p style="text-align:center; color: #666; font-size: 18px;">Откройте это приложение внутри Telegram.</p>';
+        const app = document.getElementById('app');
+        app.innerHTML = '<p class="warning">⚠️ Это приложение работает <b>только внутри Telegram</b>.<br>Пожалуйста, откройте его через кнопку в Telegram боте.</p>';
         return;
       }
 
@@ -104,13 +117,9 @@
       const checkBtn = document.getElementById('checkBtn');
       const userInput = document.getElementById('userInput');
 
-      // Генерируем 4 случайных числа 0-9
       const numbers = Array.from({ length: 4 }, () => Math.floor(Math.random() * 10));
-
-      // Показываем числа
       numbersDiv.textContent = numbers.join(' ');
 
-      // Через 5 секунд скрываем числа и показываем поле ввода
       setTimeout(() => {
         numbersDiv.textContent = '⏳ Время вышло!';
         inputSection.classList.remove('hidden');
@@ -131,7 +140,6 @@
           return;
         }
 
-        // Подсчёт совпадений
         let score = 0;
         userNumbers.forEach((num, i) => {
           if (num === numbers[i]) score++;
@@ -143,7 +151,6 @@
           🎯 Совпадений: <b>${score} из ${numbers.length}</b>
         `;
 
-        // Отправляем данные в Telegram
         tg.sendData(JSON.stringify({
           correct: numbers.join(' '),
           user: userNumbers.join(' '),
@@ -153,14 +160,14 @@
         tg.close();
       }
 
-      // Навесим обработчик на кнопку и Enter
       checkBtn.onclick = checkAnswer;
       userInput.addEventListener('keydown', e => {
         if (e.key === 'Enter') checkAnswer();
       });
 
-      window.checkAnswer = checkAnswer; // на всякий случай
+      window.checkAnswer = checkAnswer;
     })();
   </script>
 </body>
 </html>
+
