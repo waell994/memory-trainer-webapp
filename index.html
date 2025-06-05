@@ -2,62 +2,128 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Память тренажер</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Тренажер памяти</title>
   <style>
     body {
-      font-family: sans-serif;
+      background: #f0f4f8;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
       text-align: center;
-      padding: 20px;
+      max-width: 400px;
+      width: 100%;
+    }
+    h1 {
+      font-size: 24px;
+      color: #333;
+    }
+    .numbers {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 20px 0;
+      letter-spacing: 10px;
+      color: #007bff;
+      animation: fadeIn 0.5s ease-in-out;
     }
     input {
-      font-size: 1.2rem;
-      padding: 8px;
-      margin-top: 10px;
+      padding: 10px;
+      font-size: 18px;
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      margin-bottom: 20px;
     }
     button {
-      font-size: 1rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .hidden {
+      display: none;
+    }
+    .result {
+      font-size: 18px;
       margin-top: 20px;
-      padding: 10px 20px;
+      color: #444;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>🧠 Запомни числа</h1>
+    <div class="numbers" id="numbers">1234</div>
 
-  <h2>🧠 Запомни числа</h2>
-  <div id="numbers"></div>
+    <div id="inputSection" class="hidden">
+      <input id="userInput" type="text" placeholder="Например: 1 2 3 4" />
+      <button onclick="checkAnswer()">Проверить</button>
+    </div>
 
-  <div id="input-section" style="display:none;">
-    <p>Введите числа, которые вы запомнили:</p>
-    <input id="userInput" type="text" placeholder="Например: 3 7 1" />
-    <br/>
-    <button onclick="sendAnswer()">Отправить</button>
+    <div class="result" id="result"></div>
   </div>
 
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const randomNumbers = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10));
-    const numberBlock = document.getElementById('numbers');
-    const inputSection = document.getElementById('input-section');
+    const numbers = Array.from({ length: 4 }, () => Math.floor(Math.random() * 10));
+    const numbersDiv = document.getElementById('numbers');
+    const inputSection = document.getElementById('inputSection');
+    const resultDiv = document.getElementById('result');
 
-    numberBlock.innerText = randomNumbers.join(' ');
+    numbersDiv.textContent = numbers.join(' ');
 
     setTimeout(() => {
-      numberBlock.innerText = 'Время вышло!';
-      inputSection.style.display = 'block';
-    }, 3000); // Показываем числа 3 секунды
+      numbersDiv.textContent = '⏳ Время вышло!';
+      inputSection.classList.remove('hidden');
+    }, 5000);
 
-    function sendAnswer() {
-      const input = document.getElementById('userInput').value.trim();
+    function checkAnswer() {
+      const input = document.getElementById('userInput').value.trim().split(/\s+/).map(Number);
+      const correct = numbers.join(' ');
+      const user = input.join(' ');
+
+      let score = 0;
+      input.forEach((num, i) => {
+        if (num === numbers[i]) score++;
+      });
+
+      resultDiv.innerHTML = `
+        ✔️ Правильный ответ: <b>${correct}</b><br>
+        👤 Ваш ответ: <b>${user}</b><br>
+        🎯 Совпадений: <b>${score} из ${numbers.length}</b>
+      `;
+
       tg.sendData(JSON.stringify({
-        correct: randomNumbers,
-        user: input
+        correct: correct,
+        user: user,
+        score: score
       }));
-      tg.close(); // Закрыть Web App
+      tg.close();
     }
   </script>
-
 </body>
 </html>
+
