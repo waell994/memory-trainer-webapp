@@ -78,12 +78,15 @@
       font-size: 24px;
       cursor: pointer;
       color: transparent;
-      transition: background 0.3s;
+      transform-style: preserve-3d;
+      perspective: 1000px;
+      transition: transform 0.4s;
     }
     .card.flipped {
       background: var(--accent);
       color: #000;
       font-weight: bold;
+      transform: rotateY(180deg);
     }
   </style>
 </head>
@@ -103,12 +106,15 @@
     <button onclick="checkNumbers()">Проверить</button>
   </div>
   <div class="result" id="numbers-result"></div>
+  <button onclick="goHome()">🔙 Назад</button>
 </div>
 
 <div class="container hidden" id="cards-game">
   <h3>Найди пары</h3>
+  <p>Очки: <span id="score">0</span></p>
   <div class="card-grid" id="card-grid"></div>
   <div class="result" id="cards-result"></div>
+  <button onclick="goHome()">🔙 Назад</button>
 </div>
 
 <script>
@@ -123,6 +129,10 @@
     section.classList.remove('hidden');
   }
 
+  function goHome() {
+    showSection(startScreen);
+  }
+
   // --- ЦИФРЫ ---
   let correctNumbers = [];
   function startNumbersGame() {
@@ -131,6 +141,7 @@
     const inputBlock = document.getElementById('numbers-input');
     const result = document.getElementById('numbers-result');
     result.innerHTML = '';
+    inputBlock.classList.add('hidden');
     correctNumbers = Array.from({length: 5}, () => Math.floor(Math.random()*10));
     display.textContent = correctNumbers.join(' ');
     setTimeout(() => {
@@ -148,16 +159,18 @@
   }
 
   // --- КАРТОЧКИ ---
-  let cards = [], flipped = [], matched = [];
+  let cards = [], flipped = [], matched = [], cardScore = 0;
   function startCardsGame() {
     showSection(cardsGame);
     const grid = document.getElementById('card-grid');
     const result = document.getElementById('cards-result');
+    const scoreDisplay = document.getElementById('score');
     result.textContent = '';
     const base = ['🍎','🍌','🍇','🍓','🍍','🥝','🍉','🥑'];
     cards = shuffle([...base, ...base]);
     grid.innerHTML = '';
-    matched = []; flipped = [];
+    matched = []; flipped = []; cardScore = 0;
+    scoreDisplay.textContent = cardScore;
     cards.forEach((emoji, idx) => {
       const card = document.createElement('div');
       card.className = 'card';
@@ -179,6 +192,8 @@
       setTimeout(() => {
         if (cards[i1] === cards[i2]) {
           matched.push(i1, i2);
+          cardScore++;
+          document.getElementById('score').textContent = cardScore;
           if (matched.length === cards.length) {
             document.getElementById('cards-result').textContent = '🎉 Все пары найдены!';
           }
